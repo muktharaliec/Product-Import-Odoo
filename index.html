@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Odoo Product Import Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: sans-serif; background-color: #f9fafb; }
         select { width: 100%; border: 1px solid #d1d5db; padding: 4px; border-radius: 4px; font-size: 11px; }
@@ -11,14 +12,14 @@
         th { font-size: 11px; padding: 6px; text-transform: uppercase; }
     </style>
 </head>
-<body class="p-4">
+<body class="p-4 flex flex-col min-h-screen">
 
-    <div class="max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto flex-grow w-full">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-xl font-bold">Product Import Manager</h1>
             <div class="space-x-2">
-                <button onclick="addNewRow()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm">Add Row</button>
-                <button onclick="downloadCSV()" class="bg-green-600 text-white px-3 py-1 rounded text-sm">Download CSV</button>
+                <button onclick="addNewRow()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Add Row</button>
+                <button onclick="downloadExcel()" class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700">Download Excel</button>
             </div>
         </div>
 
@@ -29,6 +30,7 @@
                         <th class="border p-2">Name</th><th class="border p-2">Barcode</th><th class="border p-2">Brand</th>
                         <th class="border p-2">Category</th><th class="border p-2">POS Cat</th><th class="border p-2">UOM</th>
                         <th class="border p-2">Price</th><th class="border p-2">Cost</th>
+                        <th class="border p-2 text-center w-16">Action</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
@@ -36,8 +38,12 @@
         </div>
     </div>
 
+    <div class="max-w-7xl mx-auto w-full mt-8 pt-4 border-t border-gray-200 text-center text-gray-500 text-sm">
+        Total Page Visits: <span id="visitCount" class="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">0</span>
+    </div>
+
     <script>
-        // Full Mappings from your CSV files
+        // Full Mappings
         const brands = {446:"AFZAL",447:"AGER",448:"AKC",449:"AL AJAMY",450:"AL AMEN",451:"AL QAED",452:"AL FAKHAMAH",453:"AL FAKHER",454:"BAHRAINI",455:"AL KHALEEJ",456:"AL MEKNASS",457:"ALI BABA",458:"ARGELINI",459:"ARGILA",460:"ASEEL",461:"AVANA",462:"AVRANI",463:"BIC",464:"BLACK GOLD",465:"BLACK STONE",466:"BRASSO",467:"CAPTAIN BLACK",468:"CAVENDISH",469:"CHERISE",470:"CLIPPER",471:"COCO NARA",472:"COHIBA",473:"CONCORD",474:"DAVIDOFF",475:"DEFRAWI",476:"DUNHILL TOBACCO",477:"FAUZAN ALI",478:"FOUZA",479:"Gold Cost",480:"HOLLAND",481:"HORABI",482:"ISFAHAN",483:"KANARA",484:"LAYALINA",485:"MAC BAREN",486:"MADKHAN",487:"MAZAYA",488:"OTHERS",489:"MIRACLE",490:"MOJITO",491:"MR",492:"MYA",493:"NAKHLA",494:"NAMILUX KOREA",495:"NARINE",496:"NTD",497:"LUIS MARTINEZ",498:"BACK WOODS",499:"OCB",500:"SALIM",501:"YR",502:"ZANOBIA",503:"BSE SIGNATURE",504:"ZAEEM",505:"CAFE CREAM",506:"KING EDWARD",507:"SHARK",508:"UNIQUE MIDWAKH",509:"NA AMA",510:"PAMCHAL",511:"PARSIRAN",512:"PHILIP MORRIS",513:"QSALBURJ",514:"RAHLAT",515:"RIZLA",516:"SAGER",517:"Eastern Company",518:"SANDA",519:"SANDIAN",520:"SANKAI",521:"SNR TOM",522:"STARBUZZ",523:"SURI",524:"TOKAI",525:"TOM",526:"TURBO",527:"YA LAYL",528:"ZG SQUARE",529:"ZIG ZAG",530:"ZIPPO",531:"KHALEEL MAMOON",532:"AL SIRAJ",533:"Salloum",534:"ENERGAS",535:"MYVAPERY",536:"MYBLU",537:"SIGNATURE",538:"FAYROUZ",539:"KHALEEJ",540:"RED DIAMOND",541:"AL SAIDY",542:"E-MEDWAKH",543:"MADRIGAL",544:"SMOKING",545:"RASPBERRY",546:"JAG POWER",547:"PREMIUM",548:"IGNITE",549:"BBQ",550:"BQ",551:"COCO",552:"ALNARA",553:"SHARQEYAT LEBANON",554:"DARK HORSE",555:"BUZZ FILTER",556:"AL NUKHBA",557:"CAMP WORLD",558:"MEESHA",559:"JWELS",560:"HOMEMADE",561:"AN TAI",562:"ZHONG LONG",563:"YOMIN",564:"MARLBORO",565:"KIANTAI",566:"CANDLE STICK",567:"CERAMIC INCENSE BURNER",568:"LAVA",569:"MADJOUR",570:"BAIDA",571:"AL TAMAYUZ",572:"GLASS CRAFT",573:"Kass El Kawkab",574:"ABO NEGMA",575:"Cleopatra",576:"QUORUM",577:"Villigier",578:"OMEGA",579:"CRICKET",580:"El Defrawi",581:"FARIS COAL",582:"XSCHISCHA",583:"AL CAPONE",584:"AJ",585:"FAUZA",586:"RELX",587:"NEOS MINI",588:"HORNET",589:"XTRA",590:"RAW",605:"DJEEP",606:"ROBUSTO",608:"YANCHUAN",609:"EDBIRD",611:"J.C. NEWMAN",612:"MK COAL",613:"YUOTO",614:"TUGBOAT",615:"ARABISK",616:"FILEX",617:"POD SALT",618:"AGAIN",619:"SMOOTH",620:"ISGO",621:"VUDU",622:"YES!",623:"LOST VAPE",624:"GEEKVAPE",625:"UWELL",626:"SMOK",627:"VAPORSSO",628:"VOOPOO",629:"NASRT",630:"NASTY",631:"LOADED",632:"BLVK",633:"VGOD",635:"MYLE",636:"AIR BAR",637:"YOUTO",638:"MEGA",639:"CASETI",640:"IQOS",641:"HANGSEN CLASSICS",642:"Romeo and Juliet",643:"ZORRO",644:"VICIG",645:"HOR",646:"ONA",647:"GHOST",648:"VAPE BAR",649:"ANDS",650:"BX PLUS",651:"MYLE DRIP",652:"DJARUM",653:"HAWAYA",654:"LUXURY LITES",655:"NEW PORT",656:"MALAKI",657:"Vapes Bars",658:"ALATAA",659:"GIXOM",660:"HQD",661:"ELEMENT",662:"AH",663:"JIXIA VAPE",664:"HANNICOOK",665:"HONEST",666:"LUBINSKI",667:"JIFENG",668:"RICH MAN",669:"COCO TIGER",670:"FRESH",671:"BLACK DIAMOND",672:"TOPLINE COAL",673:"ADALYA",674:"ZOBO",675:"ONTO",676:"FIZZ VAPES",677:"TURBO STAR",678:"IQOS TEREA",679:"BOXY",680:"HIT",681:"mister",682:"COCO DALYA",683:"Sun Lihght",684:"Sun Light",685:"QUASAR",686:"AAMOZA STARBUZZ",687:"BAZHOOKAH",688:"KHATEEB",689:"BLACK BURN",690:"BSC",691:"BUZZ",692:"PRIME",693:"HYBRID",694:"JOBON",695:"AOMAI",696:"HAWAYA",697:"DEBAJ",698:"VITO",699:"SERBETLI",700:"REVOSHI",701:"DUMANOF",702:"PARTAGAS",703:"ONE NATION",704:"AL QUMMA",705:"INIC",706:"TOSCANO",707:"EVO",708:"GUANTANAMERA",709:"PURITOS",710:"Al maydan",711:"TORNABUONI",712:"VOX"};
         const categories = {1:"All",2:"All / Saleable",4:"All / Saleable / Discount",5:"All / Deliveries",589:"ACCESSORIES",590:"ACCESSORIES / ASH TRAY",591:"ACCESSORIES / CHARCOAL HOLDER",592:"FUEL / CHARCOAL LIGHTER",593:"ACCESSORIES / CHARCOAL PLATE",594:"SMOKING / CIGAR",596:"ACCESSORIES / CUTTER",597:"ACCESSORIES / FILTER",598:"ACCESSORIES / FILTER TIP",599:"ACCESSORIES / FOIL",600:"ACCESSORIES / FOIL PAPER",601:"ACCESSORIES / LIGHTER",602:"ACCESSORIES / MEDWAKH",603:"ACCESSORIES / MINISHEESHA",604:"ACCESSORIES / PIPE",605:"ACCESSORIES / PIPE CLEANER",606:"ACCESSORIES / POUCH",607:"ACCESSORIES / ROLL PAPER",608:"ACCESSORIES / ROLLING MACHINE",609:"ACCESSORIES / SHEESHA",610:"ACCESSORIES / SHEESHA ACCESSORIES",611:"ACCESSORIES / SHESHA BEARING",612:"ACCESSORIES / SHESHA HEAD",613:"ACCESSORIES / SHESHA HOSE",614:"ACCESSORIES / SHESHA WASHER",615:"PACKING MATERIALS",616:"PACKING MATERIALS / BAG",617:"PACKING MATERIALS / BOTTLE",618:"PACKING MATERIALS / BOX",619:"PACKING MATERIALS / CARTONS",620:"PACKING MATERIALS / STICKER",621:"PACKING MATERIALS / TAPES",622:"FUEL",623:"FUEL / CHARCOAL",624:"FUEL / GAS",625:"PACKING MATERIALS",626:"SMOKING",627:"SMOKING / DOKHA",628:"SMOKING / E-CIGARETTES",629:"SMOKING / ISFAHAN",630:"SMOKING / MOASSEL",631:"SMOKING / RAW TOBACCO(IMPORTED)",632:"SMOKING / RAW TOBACCO(LOCAL)",633:"SMOKING / TOBACCO",634:"TOOLS",635:"ACCESSORIES / BURNER AND BAKHOOR",636:"TOOLS / HOT PLATE",637:"TOOLS / STOVE",638:"Discount",640:"ACCESSORIES / CHARCOAL TRAY",641:"Services",642:"ACCESSORIES / BOTTLE",643:"All / ELECTRONIC",644:"ACCESSORIES / CIGAR ACCESSORIES",645:"All / Expenses",646:"Exchange Diff"};
         const posCats = {101:"SMOKING",102:"FUEL",103:"MOASSEL",104:"CHARCOAL",105:"ACCESSORIES",107:"LIGHTER",108:"FOIL",109:"CIGAR",110:"TOBACCO",111:"FILTER",112:"CHARCOAL LIGHTER",113:"ISFAHAN",114:"MEDWAKH",115:"PIPE CLEANER",116:"ASH TRAY",117:"POUCH",118:"PACKING MATERIAL",119:"PIPE",120:"SHEESHA",121:"DOKHA",122:"E-CIGARETTES",123:"RAW TOBACCO(IMPORTED)",124:"RAW TOBACCO(LOCAL)",125:"BOTTLE",126:"BURNER AND BAKHOOR",127:"CHARCOAL HOLDER",128:"CHARCOAL PLATE",129:"CHARCOAL TRAY",130:"CUTTER",131:"FILTER TIP",132:"FOIL PAPER",133:"MINI SHEESHA",134:"ROLLING MACHINE",135:"ROLL PAPER",136:"SHEESHA ACCESSORIES",137:"SHEESHA BEARING",138:"SHESHA HEAD",139:"SHESHA HOSE",140:"SHESHA WASHER",141:"GAS",142:"TOOLS",143:"HOT PLATE",144:"STOVE",145:"BAG",146:"BOTTLE",147:"BOX",148:"CARTONS",149:"STICKER",150:"TAPES"};
@@ -50,36 +56,83 @@
             renderTable();
         }
 
+        function deleteRow(index) {
+            products.splice(index, 1);
+            renderTable();
+        }
+
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = products.map((p, i) => `
-                <tr class="border-b">
+                <tr class="border-b hover:bg-gray-50">
                     <td class="border"><input type="text" value="${p.name}" onchange="update(${i}, 'name', this.value)"></td>
                     <td class="border"><input type="text" value="${p.barcode}" onchange="update(${i}, 'barcode', this.value)"></td>
                     <td class="border"><select onchange="update(${i}, 'brand_id', this.value)">${Object.entries(brands).map(([id, name]) => `<option value="${id}" ${p.brand_id==id?'selected':''}>${name}</option>`).join('')}</select></td>
                     <td class="border"><select onchange="update(${i}, 'category_id', this.value)">${Object.entries(categories).map(([id, name]) => `<option value="${id}" ${p.category_id==id?'selected':''}>${name}</option>`).join('')}</select></td>
                     <td class="border"><select onchange="update(${i}, 'pos_cat_id', this.value)">${Object.entries(posCats).map(([id, name]) => `<option value="${id}" ${p.pos_cat_id==id?'selected':''}>${name}</option>`).join('')}</select></td>
                     <td class="border"><select onchange="update(${i}, 'uom_id', this.value)">${Object.entries(uoms).map(([id, name]) => `<option value="${id}" ${p.uom_id==id?'selected':''}>${name}</option>`).join('')}</select></td>
-                    <td class="border"><input type="number" value="${p.price}" onchange="update(${i}, 'price', this.value)"></td>
-                    <td class="border"><input type="number" value="${p.cost}" onchange="update(${i}, 'cost', this.value)"></td>
+                    <td class="border"><input type="number" step="0.01" value="${p.price}" onchange="update(${i}, 'price', this.value)"></td>
+                    <td class="border"><input type="number" step="0.01" value="${p.cost}" onchange="update(${i}, 'cost', this.value)"></td>
+                    <td class="border text-center">
+                        <button onclick="deleteRow(${i})" class="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors">Del</button>
+                    </td>
                 </tr>
             `).join('');
         }
 
         function update(i, field, val) { products[i][field] = val; }
 
-        function downloadCSV() {
-            const headers = ["Name","BarCode","Brand","Type","Product Category / Database id","Point of Sale Category / Database Id","internal reference","Unit of measure/Database ID","Purchase Uom/Database ID","Routes","Available in POS","Can be sold","Can be purchased","Price","Cost"];
-            let csv = headers.join(",") + "\n";
-            products.forEach(p => {
-                csv += `"${p.name}","${p.barcode}","${p.brand_id}","Storable Product","${p.category_id}","${p.pos_cat_id}","","${p.uom_id}","${p.uom_id}","Buy","True","True","True","${p.price}","${p.cost}"\n`;
+        function downloadExcel() {
+            if (products.length === 0) {
+                alert("Please add at least one product before downloading.");
+                return;
+            }
+
+            const excelData = products.map(p => {
+                const basePrice = p.price ? (parseFloat(p.price) / 1.05).toFixed(4) : 0;
+                const baseCost = p.cost ? (parseFloat(p.cost) / 1.05).toFixed(4) : 0;
+
+                return {
+                    "Name": p.name,
+                    "BarCode": p.barcode,
+                    "Brand": p.brand_id,
+                    "Type": "Storable Product",
+                    "Product Category / Database id": p.category_id,
+                    "Point of Sale Category / Database Id": p.pos_cat_id,
+                    "internal reference": "",
+                    "Unit of measure/Database ID": p.uom_id,
+                    "Purchase Uom/Database ID": p.uom_id,
+                    "Routes": "Buy",
+                    "Available in POS": "True",
+                    "Can be sold": "True",
+                    "Can be purchased": "True",
+                    "Price": parseFloat(basePrice),
+                    "Cost": parseFloat(baseCost)
+                };
             });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = "import_products.csv";
-            link.click();
+
+            const worksheet = XLSX.utils.json_to_sheet(excelData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
+            XLSX.writeFile(workbook, "import_products.xlsx");
         }
+
+        // Initialize Local Visit Counter on Page Load
+        document.addEventListener("DOMContentLoaded", () => {
+            let currentVisits = localStorage.getItem("productManagerVisits");
+            
+            // If there's no existing record, start at 1, otherwise increment
+            if (!currentVisits) {
+                currentVisits = 1;
+            } else {
+                currentVisits = parseInt(currentVisits) + 1;
+            }
+            
+            // Save back to storage and update UI
+            localStorage.setItem("productManagerVisits", currentVisits);
+            document.getElementById("visitCount").innerText = currentVisits;
+        });
+
     </script>
 </body>
 </html>
